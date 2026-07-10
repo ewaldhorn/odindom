@@ -1,0 +1,380 @@
+/* ============================================================
+   OdinDOM Demo — Synthwave Dark Theme
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+  --bg:           #05050f;
+  --surface:      #0d0d22;
+  --border:       #1a1a40;
+  --glow-cyan:    #00f0dc;
+  --glow-magenta: #ff00b4;
+  --glow-violet:  #a000ff;
+  --glow-yellow:  #ffe600;
+  --text-primary: #e0e0ff;
+  --text-muted:   #666699;
+  --accent:       #00f0dc;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  text-align: center;
+
+  /* Subtle grid scanline texture */
+  background-image:
+    linear-gradient(rgba(0,240,220,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,220,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ---- Header ---- */
+h1 {
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 18px 0 10px;
+  background: linear-gradient(90deg, var(--glow-cyan), var(--glow-magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 12px rgba(0,240,220,0.4));
+}
+
+/* ---- Nav / Controls ---- */
+nav {
+  margin: 8px 0;
+}
+
+#controls {
+  display: none;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--glow-cyan);
+  background: transparent;
+  color: var(--glow-cyan);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+button:hover {
+  background: rgba(0,240,220,0.12);
+  box-shadow: 0 0 12px rgba(0,240,220,0.45);
+  color: #fff;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+
+/* ---- Application section (article + aside) ---- */
+#loading {
+  color: var(--text-muted);
+  padding: 16px;
+  font-style: italic;
+}
+
+#information {
+  display: none;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  padding: 10px 0 6px;
+}
+
+#information a {
+  color: var(--glow-cyan);
+  text-decoration: none;
+}
+#information a:hover {
+  text-decoration: underline;
+}
+
+.application {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+article, aside {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 180px;
+  flex: 1 1 200px;
+  max-width: 420px;
+  text-align: left;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ---- Canvas containers ---- */
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 12px auto;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 0 24px rgba(0,240,220,0.07);
+  /* Allow the canvas to shrink on narrow screens */
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Canvas elements created by Zig scale responsively */
+canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+  image-rendering: pixelated;
+}
+
+/* Physics canvas — crosshair cursor, extra neon glow hint */
+.canvas-interactive {
+  border-color: rgba(255,0,180,0.35);
+  box-shadow: 0 0 28px rgba(255,0,180,0.12);
+  position: relative;
+}
+
+.canvas-interactive canvas {
+  cursor: crosshair;
+}
+
+.canvas-drum {
+  border-color: rgba(0, 240, 220, 0.35);
+  box-shadow: 0 0 28px rgba(0, 240, 220, 0.10);
+}
+
+.canvas-drum canvas {
+  cursor: pointer;
+  image-rendering: pixelated;
+}
+
+.canvas-hint {
+  font-size: 0.72rem;
+  color: var(--glow-magenta);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.canvas-interactive:hover .canvas-hint {
+  opacity: 1.0;
+}
+
+.canvas-controls {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ---- Coloured text classes (used by addRandomParagraph) ---- */
+.blue   { color: #4488ff; }
+.red    { color: #ff4466; }
+.orange { color: #ff9900; }
+.large  { font-size: large; }
+.larger { font-size: larger; }
+.xlarge { font-size: x-large; }
+
+/* ---- Aside element variants ---- */
+.aside-note {
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  margin: 4px 0;
+  border-left: 3px solid var(--glow-cyan);
+  border-radius: 2px;
+  background: rgba(0,240,220,0.04);
+  transition: border-color 0.3s;
+}
+.aside-note.blue   { border-left-color: #4488ff; }
+.aside-note.red    { border-left-color: #ff4466; }
+.aside-note.orange { border-left-color: #ff9900; }
+
+.aside-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  margin: 3px 2px;
+  border-radius: 10px;
+  border: 1px solid;
+  background: rgba(0,240,220,0.06);
+  text-transform: lowercase;
+}
+.aside-tag.blue   { border-color: #4488ff; color: #6699ff; }
+.aside-tag.red    { border-color: #ff4466; color: #ff6688; }
+.aside-tag.orange { border-color: #ff9900; color: #ffbb44; }
+
+.aside-quip {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 4px 8px 4px 16px;
+  margin: 4px 0;
+  position: relative;
+  opacity: 0.85;
+}
+.aside-quip::before {
+  content: "\201C";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-size: 1.2rem;
+  color: var(--glow-magenta);
+  opacity: 0.5;
+}
+
+.boo-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--glow-magenta);
+  margin: 6px 0 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(255,0,180,0.15);
+}
+
+/* ---- Soundtrack Toggle Button Neon Styling ---- */
+#audioToggleButton {
+  border-color: var(--glow-magenta);
+  color: var(--glow-magenta);
+  box-shadow: 0 0 6px rgba(255, 0, 180, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#audioToggleButton:hover {
+  background: rgba(255, 0, 180, 0.15);
+  box-shadow: 0 0 16px rgba(255, 0, 180, 0.6);
+  color: #fff;
+  text-shadow: 0 0 4px #fff;
+}
+
+#audioToggleButton.playing {
+  background: rgba(255, 0, 180, 0.25);
+  box-shadow: 0 0 20px rgba(255, 0, 180, 0.8);
+  color: #fff;
+  border-color: #fff;
+  animation: neon-pulse 1.8s infinite alternate;
+}
+
+@keyframes neon-pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 0, 180, 0.5), inset 0 0 5px rgba(255, 0, 180, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 24px rgba(255, 0, 180, 0.9), inset 0 0 10px rgba(255, 0, 180, 0.5);
+  }
+}
+
+/* ---- Volume Slider Styling ---- */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 6px;
+  height: 38px; /* Match standard button height */
+}
+
+#volumeLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--glow-cyan);
+  min-width: 65px;
+  text-align: left;
+}
+
+#volumeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#volumeSlider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: var(--border);
+  border-radius: 3px;
+}
+
+#volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--glow-magenta);
+  cursor: pointer;
+  margin-top: -4px; /* offset vertical alignment */
+  box-shadow: 0 0 8px var(--glow-magenta);
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+
+#volumeSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 12px var(--glow-magenta);
+}
+
+#volumeSlider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 50%;
+  background: var(--glow-magenta);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--glow-magenta);
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+
+#volumeSlider::-moz-range-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 12px var(--glow-magenta);
+}

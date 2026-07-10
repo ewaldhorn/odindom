@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="OdinDOM — an Odin WebAssembly DOM utility library demo featuring canvas drawing primitives, interactive physics simulation, switchable gravity, and a drum sequencer." />
+    <script src="../web/odindom.js"></script>
+    <title>OdinDOM Demo</title>
+    <link href="styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header>
+      <h1 id="title">OdinDOM — The Demo</h1>
+    </header>
+    <nav>
+      <div id="controls">
+        <button id="addSomethingButton" type="button">Add Something</button>
+        <button id="clearAsideButton" type="button">Clear Aside</button>
+        <button id="refreshButton" type="button">Refresh Main Canvas</button>
+        <button id="drumPlayButton" type="button">▶ Drum Machine</button>
+        <button id="audioToggleButton" type="button" onclick="toggleAudio()">🔇 Play Soundtrack</button>
+        <div class="volume-control">
+          <span id="volumeLabel">Vol: 20%</span>
+          <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.2" oninput="changeVolume(this.value)" />
+        </div>
+      </div>
+    </nav>
+    <hr />
+    <section>
+      <div id="loading">Loading ...</div>
+      <div id="application" class="application"></div>
+    </section>
+
+    <!-- Canvas One: static synthwave gallery -->
+    <div id="canvasOneDiv" class="canvas-container" title="Synthwave Gallery — click Refresh to redraw"></div>
+
+    <!-- Canvas Two: interactive ball physics -->
+    <div id="canvasTwoDiv" class="canvas-container canvas-interactive" title="Click or drag to push the balls!">
+      <div class="canvas-hint">Click or drag to push the balls!</div>
+      <div class="canvas-controls">
+        <button id="gravityButton" type="button">Gravity: DOWN</button>
+      </div>
+    </div>
+
+    <!-- Canvas Three: retro drum machine sequencer -->
+    <div id="canvasThreeDiv" class="canvas-container canvas-drum" title="Click or tap to toggle sequencer steps!">
+      <div class="canvas-hint">Click pads to toggle · Play/Stop to run</div>
+    </div>
+
+    <hr />
+    <footer id="information">
+      <p>
+        OdinDOM is a utility library for Web and WebAssembly (WASM) projects written in Odin —
+        a port of <a href="https://github.com/ewaldhorn/godom">GoDOM</a>.
+      </p>
+      <p>
+        Source code:
+        <a href="https://github.com/ewaldhorn/odindom">
+            https://github.com/ewaldhorn/odindom
+        </a>
+      </p>
+    </footer>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OdinDOM — click-rect</title>
+<style>
+  body { background: #111; color: #eee; font-family: sans-serif; text-align: center; }
+  #app { display: inline-block; margin-top: 2rem; cursor: pointer; }
+  canvas { border: 1px solid #444; image-rendering: pixelated; }
+</style>
+</head>
+<body>
+<h1>OdinDOM — click-rect</h1>
+<p>Click the rectangle to toggle its colour.</p>
+<div id="app"></div>
+<script src="../../web/odindom.js"></script>
+<script>
+  OdinDom.instantiate("click-rect.wasm").catch((err) => {
+    console.error("Failed to load OdinDOM app:", err);
+  });
+</script>
+</body>
+</html>

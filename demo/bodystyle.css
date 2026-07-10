@@ -1,0 +1,105 @@
+body {
+  background-color: #05050f;
+}
+
+body h1 {
+  /* gradient applied via styles.css; no override needed */
+  color: #e0e0ff;
+}
+
+#information {
+  color: #666699;
+}
+
+.application {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+  .application {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.application article {
+  flex-grow: 5;
+  border: 1px solid #1a1a40;
+  color: #999acc;
+}
+
+.application aside {
+  border: 1px solid #1a1a40;
+  flex-grow: 2;
+  color: #999acc;
+}
+
+/* ---- Coloured text classes ---- */
+.blue   { color: #4488ff; }
+.red    { color: #ff4466; }
+.orange { color: #ff9900; }
+.large  { font-size: large; }
+.larger { font-size: larger; }
+.xlarge { font-size: x-large; }
+
+/* ---- Aside element variants ---- */
+.aside-note {
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  margin: 4px 0;
+  border-left: 3px solid #00f0dc;
+  border-radius: 2px;
+  background: rgba(0,240,220,0.04);
+  transition: border-color 0.3s;
+}
+.aside-note.blue   { border-left-color: #4488ff; }
+.aside-note.red    { border-left-color: #ff4466; }
+.aside-note.orange { border-left-color: #ff9900; }
+
+.aside-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  margin: 3px 2px;
+  border-radius: 10px;
+  border: 1px solid;
+  background: rgba(0,240,220,0.06);
+  text-transform: lowercase;
+}
+.aside-tag.blue   { border-color: #4488ff; color: #6699ff; }
+.aside-tag.red    { border-color: #ff4466; color: #ff6688; }
+.aside-tag.orange { border-color: #ff9900; color: #ffbb44; }
+
+.aside-quip {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: #666699;
+  padding: 4px 8px 4px 16px;
+  margin: 4px 0;
+  position: relative;
+  opacity: 0.85;
+}
+.aside-quip::before {
+  content: "\201C";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-size: 1.2rem;
+  color: #ff00b4;
+  opacity: 0.5;
+}
+
+.boo-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ff00b4;
+  margin: 6px 0 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(255,0,180,0.15);
+}
