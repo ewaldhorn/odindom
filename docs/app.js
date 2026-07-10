@@ -306,8 +306,8 @@ function initializeInteractions() {
 
 // Instantiate the OdinDOM WASM module. The demo needs one foreign import beyond the shared
 // odindom_env DOM bridge — odindom_demo_env.drum_play_hit — for the drum machine sequencer
-// (see demo/canvas_three.odin), routed through to the Web Audio synthesis above.
-OdinDom.instantiate("demo.wasm", {
+// (see docs/canvas_three.odin), routed through to the Web Audio synthesis above.
+OdinDom.instantiate("docs.wasm", {
   odindom_demo_env: {
     drum_play_hit: (track) => { drumHit(track); },
   },

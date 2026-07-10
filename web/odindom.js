@@ -39,7 +39,7 @@
   globalThis.OdinDom = {
     // extraImports: optional object of additional foreign import modules to merge in, e.g.
     // `{ odindom_demo_env: { drum_play_hit: (track) => { ... } } }` for app-specific foreign
-    // procs declared outside the shared `dom` package (see demo/canvas_three.odin).
+    // procs declared outside the shared `dom` package (see docs/canvas_three.odin).
     instantiate: async function (wasmUrl, extraImports) {
       let wasmMemory;
       let wasmExports;

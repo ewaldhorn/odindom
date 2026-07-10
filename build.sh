@@ -18,7 +18,7 @@ build_example() {
 	odin build "$dir" -out:"$dir/$name.wasm" "${FLAGS[@]}"
 }
 
-for dir in examples/*/ demo/; do
+for dir in examples/*/ docs/; do
 	dir="${dir%/}"
 	if compgen -G "$dir/*.odin" > /dev/null; then
 		build_example "$dir"
@@ -28,4 +28,4 @@ done
 echo
 echo "Done. Serve the repo root with any static file server and open e.g.:"
 echo "  examples/click-rect/index.html"
-echo "  demo/index.html"
+echo "  docs/index.html"

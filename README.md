@@ -7,11 +7,11 @@ handle-table interop design where Odin's own constraints require a different app
 ## Quick start
 
 ```sh
-./run.sh   # builds every example + the demo, then serves the repo root on :9000
+./run.sh   # builds every example + docs, then serves the repo root on :9000
 ```
 
 Then open `http://localhost:9000/examples/click-rect/index.html` or
-`http://localhost:9000/demo/index.html`. This matches the `run.sh` convention used by
+`http://localhost:9000/docs/index.html`. This matches the `run.sh` convention used by
 [GoDOM](../godom) and [ZigDOM](../zigdom) — build, then serve on `:9000` via
 `http-server -c-1` (cache disabled, so a rebuilt `.wasm` is always picked up).
 
@@ -67,7 +67,7 @@ html.text(p, "Hello")
 html.append_to(p, parent)
 ```
 
-This is the idiomatic Odin shape (see `examples/click-rect` and `demo`) rather than a workaround —
+This is the idiomatic Odin shape (see `examples/click-rect` and `docs`) rather than a workaround —
 forcing a chained illusion would fight the language.
 
 ### Event callbacks
@@ -109,7 +109,7 @@ x, _ := strconv.parse_int(dom.get(evt, "offsetX"))
 ## Building
 
 ```sh
-./build.sh                       # builds every example + the demo to <name>.wasm
+./build.sh                       # builds every example + docs to <name>.wasm
 odin build examples/click-rect \
   -out:examples/click-rect/click-rect.wasm \
   -target:js_wasm32 -o:size -no-entry-point
@@ -119,22 +119,22 @@ odin build examples/click-rect \
 with an entry `main` proc.
 
 Then serve the repo root with `./run.sh` (or any static file server — just not `file://`, see
-"Quick start" above) and open `examples/click-rect/index.html` or `demo/index.html`.
+"Quick start" above) and open `examples/click-rect/index.html` or `docs/index.html`.
 
 ## Examples
 
 - **`examples/click-rect`** — direct port of GoDOM's `examples/click-rect`: a canvas rectangle
   that toggles colour on click, verified against real click coordinates.
-- **`demo`** — a full port of GoDOM's `demo/demo.go`, ported directly from the Go source (not from
+- **`docs`** — a full port of GoDOM's `demo/demo.go`, ported directly from the Go source (not from
   ZigDOM's simplified version, which drops the AI ship system and uses a coarser sequencer clock —
-  see `demo/canvas_one_ai.odin` and `dom.now()` below). Three canvases: a synthwave gallery with an
+  see `docs/canvas_one_ai.odin` and `dom.now()` below). Three canvases: a synthwave gallery with an
   AI-controlled ship that dodges spawning obstacles (asteroids/bolts/enemies) and a live dodge-count
   score HUD, an animated 14-ball physics simulation with switchable gravity
   (down/left/up/right/zero-g), collision, motion trails, and drag-to-push interaction, and a 16-step
   drum machine sequencer stepped by real wall-clock time (`dom.now()`, i.e. `performance.now()`) so
   BPM stays accurate regardless of frame rate. Plus the full DOM/`html`-builder showcase (random
   aside notes/tags/quips, handle-based API demos, wrapped elements) and a synthwave soundtrack via
-  an `AudioWorkletProcessor`. `demo/app.js`, `demo/styles.css`, and `demo/synth-worklet.js` are
+  an `AudioWorkletProcessor`. `docs/app.js`, `docs/styles.css`, and `docs/synth-worklet.js` are
   adapted directly from GoDOM's/ZigDOM's own demo assets (pure CSS/Web-Audio JS, not Odin-specific)
   rather than rewritten from scratch.
 

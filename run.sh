@@ -1,11 +1,10 @@
 #!/bin/bash
-# run.sh — Build every example + demo, then start the dev server.
+# run.sh — Build every example + docs, then start the dev server.
 #
 # Matches the run.sh convention used by ../godom and ../zigdom (build, then
 # serve on :9000 with http-server -c-1 to disable caching of the .wasm).
-# Unlike those repos there is no single docs/ output — OdinDOM ships two
-# separate runnable apps (examples/click-rect and demo), so the whole repo
-# root is served instead of one docs/ directory.
+# OdinDOM ships two separate runnable apps (examples/click-rect and docs), so
+# the whole repo root is served instead of a single output directory.
 
 set -euo pipefail
 
@@ -17,5 +16,5 @@ echo "==> Building WASM ..."
 
 echo "==> Starting dev server on http://localhost:9000 ..."
 echo "    examples/click-rect: http://localhost:9000/examples/click-rect/index.html"
-echo "    demo:                http://localhost:9000/demo/index.html"
+echo "    docs:                http://localhost:9000/docs/index.html"
 npx http-server . -p 9000 -c-1
