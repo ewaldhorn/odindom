@@ -3,7 +3,6 @@ package main
 
 import "../canvas"
 import "../colour"
-import "../dom"
 import "core:math"
 
 // ------------------------------------------------------------------------------------------------
@@ -17,7 +16,7 @@ canvas_one:        canvas.Canvas
 // ------------------------------------------------------------------------------------------------
 Theme :: struct {
 	bg, panel, cyan, magenta, yellow, violet, sun_start, sun_end: colour.Colour,
-	glow_start_str, glow_mid_str, glow_end_str:                    string,
+	glow_start, glow_mid, glow_end:                               colour.Colour,
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -34,9 +33,9 @@ themes := []Theme {
 		violet = {r = 160, g = 0, b = 255, a = 255},
 		sun_start = {r = 255, g = 230, b = 0, a = 255},
 		sun_end = {r = 255, g = 0, b = 180, a = 255},
-		glow_start_str = "rgba(255,0,180,0.12)",
-		glow_mid_str = "rgba(255,180,30,0.22)",
-		glow_end_str = "rgba(255,230,0,0.32)",
+		glow_start = {r = 255, g = 0, b = 180, a = 31},
+		glow_mid = {r = 255, g = 180, b = 30, a = 56},
+		glow_end = {r = 255, g = 230, b = 0, a = 82},
 	},
 	{
 		bg = {r = 12, g = 4, b = 4, a = 255},
@@ -47,9 +46,9 @@ themes := []Theme {
 		violet = {r = 100, g = 0, b = 0, a = 255},
 		sun_start = {r = 255, g = 200, b = 0, a = 255},
 		sun_end = {r = 255, g = 40, b = 0, a = 255},
-		glow_start_str = "rgba(255,40,0,0.12)",
-		glow_mid_str = "rgba(255,120,0,0.22)",
-		glow_end_str = "rgba(255,200,0,0.32)",
+		glow_start = {r = 255, g = 40, b = 0, a = 31},
+		glow_mid = {r = 255, g = 120, b = 0, a = 56},
+		glow_end = {r = 255, g = 200, b = 0, a = 82},
 	},
 	{
 		bg = {r = 20, g = 10, b = 30, a = 255},
@@ -60,9 +59,9 @@ themes := []Theme {
 		violet = {r = 138, g = 43, b = 226, a = 255},
 		sun_start = {r = 0, g = 255, b = 255, a = 255},
 		sun_end = {r = 255, g = 105, b = 180, a = 255},
-		glow_start_str = "rgba(255,105,180,0.12)",
-		glow_mid_str = "rgba(138,43,226,0.22)",
-		glow_end_str = "rgba(0,255,255,0.32)",
+		glow_start = {r = 255, g = 105, b = 180, a = 31},
+		glow_mid = {r = 138, g = 43, b = 226, a = 56},
+		glow_end = {r = 0, g = 255, b = 255, a = 82},
 	},
 	{
 		bg = {r = 2, g = 8, b = 4, a = 255},
@@ -73,9 +72,9 @@ themes := []Theme {
 		violet = {r = 0, g = 80, b = 20, a = 255},
 		sun_start = {r = 200, g = 255, b = 200, a = 255},
 		sun_end = {r = 0, g = 180, b = 50, a = 255},
-		glow_start_str = "rgba(0,180,50,0.12)",
-		glow_mid_str = "rgba(0,80,20,0.22)",
-		glow_end_str = "rgba(0,255,100,0.32)",
+		glow_start = {r = 0, g = 180, b = 50, a = 31},
+		glow_mid = {r = 0, g = 80, b = 20, a = 56},
+		glow_end = {r = 0, g = 255, b = 100, a = 82},
 	},
 }
 
@@ -112,10 +111,9 @@ perform_demo_on_canvas_one :: proc() {
 	draw_c_one_obstacles(w / 2, horizon, h, active_theme)
 	draw_vector_ship(i32(c_one_ship_x), h - 55, canvas_one_time, active_theme)
 	draw_c_one_hud(w, h, active_theme)
+	draw_sun_glow(w, horizon - 20, canvas_one_time, active_theme)
 
 	canvas.render(&canvas_one)
-
-	draw_sun_glow(canvas.get_context_2d(&canvas_one), w, horizon - 20, canvas_one_time, active_theme)
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -332,24 +330,15 @@ draw_vector_ship :: proc(cx, cy: i32, time: u32, t: Theme) {
 }
 
 // ------------------------------------------------------------------------------------------------
-draw_sun_glow :: proc(ctx: dom.Context2D, w, cy: i32, time: u32, t: Theme) {
-	cx_f := f64(w / 2)
-	cy_f := f64(cy)
+// draw_sun_glow blends three concentric translucent circles into canvas_one's pixel buffer to
+// haze the retro sun, rasterized in-buffer (blend_filled_circle) rather than via Context2D so it
+// rides along in the frame's single canvas.render() bridge crossing instead of adding its own.
+draw_sun_glow :: proc(w, cy: i32, time: u32, t: Theme) {
+	cx := w / 2
 	time_f := f64(time)
 	pulse := 3.0 * math.sin(time_f * 0.05)
 
-	dom.begin_path(ctx)
-	dom.fill_style(ctx, t.glow_start_str)
-	dom.arc(ctx, cx_f, cy_f, 130.0 + pulse, 0.0, 6.2832, false)
-	dom.fill(ctx)
-
-	dom.begin_path(ctx)
-	dom.fill_style(ctx, t.glow_mid_str)
-	dom.arc(ctx, cx_f, cy_f, 95.0 - pulse, 0.0, 6.2832, false)
-	dom.fill(ctx)
-
-	dom.begin_path(ctx)
-	dom.fill_style(ctx, t.glow_end_str)
-	dom.arc(ctx, cx_f, cy_f, 50.0 + pulse, 0.0, 6.2832, false)
-	dom.fill(ctx)
+	canvas.blend_filled_circle(&canvas_one, cx, cy, i32(130.0 + pulse), t.glow_start)
+	canvas.blend_filled_circle(&canvas_one, cx, cy, i32(95.0 - pulse), t.glow_mid)
+	canvas.blend_filled_circle(&canvas_one, cx, cy, i32(50.0 + pulse), t.glow_end)
 }

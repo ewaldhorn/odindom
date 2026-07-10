@@ -125,6 +125,24 @@ filled_circle :: proc "contextless" (c: ^Canvas, mid_x, mid_y, radius: i32) {
 }
 
 // ------------------------------------------------------------------------------------------------
+// blend_filled_circle draws a filled circle at (mid_x, mid_y) with the specified radius,
+// alpha-compositing col over existing pixels (col.a controls blend strength) instead of
+// overwriting them. Useful for soft glow/haze effects layered over already-drawn content.
+blend_filled_circle :: proc "contextless" (c: ^Canvas, mid_x, mid_y, radius: i32, col: colour.Colour) {
+	if radius <= 0 {
+		return
+	}
+	r2 := i64(radius) * i64(radius)
+	for dy := -radius; dy <= radius; dy += 1 {
+		dy64 := i64(dy)
+		chord := i32(math.sqrt(f64(r2 - dy64 * dy64)))
+		for dx := -chord; dx <= chord; dx += 1 {
+			blend_pixel(c, mid_x + dx, mid_y + dy, col)
+		}
+	}
+}
+
+// ------------------------------------------------------------------------------------------------
 // colour_filled_circle draws a filled circle at (mid_x, mid_y) with the specified radius and
 // colour.
 colour_filled_circle :: proc "contextless" (c: ^Canvas, mid_x, mid_y, radius: i32, col: colour.Colour) {

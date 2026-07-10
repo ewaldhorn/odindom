@@ -45,6 +45,28 @@ colour_put_pixel :: proc "contextless" (c: ^Canvas, x, y: i32, col: colour.Colou
 }
 
 // ------------------------------------------------------------------------------------------------
+// blend_pixel alpha-composites col over the existing pixel at (x, y), using col.a (0-255) as the
+// blend weight. Destination alpha is left at 255 (canvas backgrounds are always opaque).
+blend_pixel :: proc "contextless" (c: ^Canvas, x, y: i32, col: colour.Colour) {
+	off, ok := pixel_offset(c, x, y)
+	if !ok || col.a == 0 {
+		return
+	}
+	if col.a == 255 {
+		c.pixels[off] = col.r
+		c.pixels[off + 1] = col.g
+		c.pixels[off + 2] = col.b
+		c.pixels[off + 3] = col.a
+		return
+	}
+	a := u32(col.a)
+	inv := 255 - a
+	c.pixels[off] = u8((u32(col.r) * a + u32(c.pixels[off]) * inv) / 255)
+	c.pixels[off + 1] = u8((u32(col.g) * a + u32(c.pixels[off + 1]) * inv) / 255)
+	c.pixels[off + 2] = u8((u32(col.b) * a + u32(c.pixels[off + 2]) * inv) / 255)
+}
+
+// ------------------------------------------------------------------------------------------------
 // get_pixel retrieves the colour of the pixel at (x, y).
 // It returns false if the coordinates are out of bounds.
 get_pixel :: proc "contextless" (c: ^Canvas, x, y: i32) -> (colour.Colour, bool) {
