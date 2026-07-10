@@ -25,6 +25,10 @@ for dir in examples/*/ docs/; do
 	fi
 done
 
+# docs/ must be self-contained for GitHub Pages, which only serves that one directory and
+# can't reach the sibling web/ dir examples/ still load via a relative "../web/odindom.js".
+cp web/odindom.js docs/odindom.js
+
 echo
 echo "Done. Serve the repo root with any static file server and open e.g.:"
 echo "  examples/click-rect/index.html"
