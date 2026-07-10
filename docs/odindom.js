@@ -139,7 +139,7 @@
             });
           },
 
-          // -- Canvas & Context2D --
+          // -- Canvas --
           dom_canvas_create: (parent, width, height) => {
             const canvas = document.createElement("canvas");
             canvas.width = width;
@@ -169,13 +169,6 @@
             };
             requestAnimationFrame(tick);
           },
-          dom_ctx_begin_path: (ctx) => { jsValues[ctx].beginPath(); },
-          dom_ctx_fill: (ctx) => { jsValues[ctx].fill(); },
-          dom_ctx_arc: (ctx, x, y, radius, startAngle, endAngle, ccw) => {
-            jsValues[ctx].arc(x, y, radius, startAngle, endAngle, ccw === 1);
-          },
-          dom_ctx_fill_style: (ctx, ptr, len) => { jsValues[ctx].fillStyle = getStr(ptr, len); },
-
           // -- Logging --
           dom_log: (ptr, len) => { console.log(getStr(ptr, len)); },
           dom_alert: (ptr, len) => { alert(getStr(ptr, len)); },

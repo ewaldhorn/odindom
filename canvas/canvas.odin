@@ -97,12 +97,3 @@ get_colour :: proc "contextless" (c: ^Canvas) -> colour.Colour {
 	return c.active_colour
 }
 
-// ------------------------------------------------------------------------------------------------
-// get_context_2d returns a Context2D wrapper for the HTML canvas context.
-// Panics if called on a canvas created with new_offscreen_canvas.
-get_context_2d :: proc(c: ^Canvas) -> dom.Context2D {
-	if !dom.is_valid(c.ctx_handle) {
-		panic("odindom: get_context_2d called on an offscreen canvas; only valid for canvases created with new_canvas")
-	}
-	return dom.Context2D{ctx = c.ctx_handle}
-}
