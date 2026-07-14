@@ -444,6 +444,21 @@ local_storage_get_item :: proc "contextless" (key: string) -> (value: string, ok
 }
 
 // ------------------------------------------------------------------------------------------------
+// local_storage_get_item_into reads the value for key into a caller-supplied buffer (for payloads
+// larger than the shared 4 KiB scratch, e.g. serialized game saves). The returned string aliases
+// buf. ok=false if the key is unset. Note: an oversized value is silently truncated to len(buf).
+local_storage_get_item_into :: proc "contextless" (key: string, buf: []u8) -> (value: string, ok: bool) {
+	n := dom_local_storage_get_item(key, buf)
+	if n < 0 {
+		return "", false
+	}
+	if n > len(buf) {
+		n = len(buf)
+	}
+	return string(buf[:n]), true
+}
+
+// ------------------------------------------------------------------------------------------------
 // local_storage_set_item stores value under key.
 local_storage_set_item :: proc "contextless" (key, value: string) {
 	dom_local_storage_set_item(key, value)
