@@ -120,6 +120,9 @@
           dom_class_list_add: (elem, ptr, len) => { jsValues[elem].classList.add(getStr(ptr, len)); },
           dom_class_list_remove: (elem, ptr, len) => { jsValues[elem].classList.remove(getStr(ptr, len)); },
           dom_set_display: (elem, ptr, len) => { jsValues[elem].style.display = getStr(ptr, len); },
+          dom_set_style: (elem, kPtr, kLen, vPtr, vLen) => {
+            jsValues[elem].style[getStr(kPtr, kLen)] = getStr(vPtr, vLen);
+          },
           dom_call_focus: (elem) => { jsValues[elem].focus(); },
           dom_get_element_by_id: (ptr, len) => {
             const el = document.getElementById(getStr(ptr, len));

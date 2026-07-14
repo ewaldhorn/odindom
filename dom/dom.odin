@@ -45,6 +45,7 @@ foreign odindom_env {
 	dom_class_list_add      :: proc(elem: Handle, class_name: string) ---
 	dom_class_list_remove   :: proc(elem: Handle, class_name: string) ---
 	dom_set_display         :: proc(elem: Handle, display: string) ---
+	dom_set_style           :: proc(elem: Handle, prop, value: string) ---
 	dom_call_focus          :: proc(elem: Handle) ---
 	dom_get_element_by_id   :: proc(id: string) -> Handle ---
 	dom_add_style_element   :: proc(css: string) ---
@@ -121,6 +122,12 @@ get :: proc "contextless" (h: Handle, key: string) -> string {
 // set sets a string property on an element by handle.
 set :: proc "contextless" (h: Handle, key, value: string) {
 	dom_set_property_str(h, key, value)
+}
+
+// ------------------------------------------------------------------------------------------------
+// set_style sets a single inline CSS property (element.style[prop] = value) by handle.
+set_style :: proc "contextless" (h: Handle, prop, value: string) {
+	dom_set_style(h, prop, value)
 }
 
 // ------------------------------------------------------------------------------------------------
