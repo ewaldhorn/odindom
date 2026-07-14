@@ -1,6 +1,8 @@
 // Package dom provides a basic DOM manipulation wrapper over a JS handle-table bridge.
 package dom
 
+import "core:strconv"
+
 // ------------------------------------------------------------------------------------------------
 // Handle represents a reference to a live JS object in the browser, stored in the JS-side
 // handle table and addressed by integer id. 0 is null/invalid.
@@ -50,6 +52,25 @@ foreign odindom_env {
 	dom_log                 :: proc(msg: string) ---
 	dom_alert                :: proc(msg: string) ---
 	dom_now                 :: proc() -> f64 ---
+
+	// Generic method-call / numeric-property bridge — lets callers reach JS APIs that dom.odin
+	// has no dedicated wrapper for (Web Audio nodes, getBoundingClientRect, preventDefault, ...)
+	// without adding a bespoke foreign proc per method.
+	dom_call_method0    :: proc(elem: Handle, name: string) ---
+	dom_call_method_ret :: proc(elem: Handle, name: string) -> Handle ---
+	dom_call_method1f   :: proc(elem: Handle, name: string, a: f64) ---
+	dom_call_method2f   :: proc(elem: Handle, name: string, a, b: f64) ---
+	dom_call_method1h   :: proc(elem: Handle, name: string, arg: Handle) ---
+	dom_set_property_f64 :: proc(elem: Handle, key: string, value: f64) ---
+
+	// Web Audio: AudioContext construction needs the vendor-prefix fallback dance
+	// (AudioContext / webkitAudioContext), so it gets its own constructor rather than a generic
+	// "new" bridge.
+	dom_new_audio_context :: proc() -> Handle ---
+
+	// localStorage
+	dom_local_storage_get_item :: proc(key: string, buf: []byte) -> int ---
+	dom_local_storage_set_item :: proc(key, value: string) ---
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -75,6 +96,12 @@ init :: proc "contextless" () {
 // is_valid checks if the handle is non-null.
 is_valid :: proc "contextless" (h: Handle) -> bool {
 	return h != INVALID
+}
+
+// get_property retrieves a handle to a property value of any JS type (object, DOM node, nested
+// field, array element by numeric-string index, ...). Use dom.get for a property's string form.
+get_property :: proc "contextless" (h: Handle, key: string) -> Handle {
+	return dom_get_property(h, key)
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -329,6 +356,90 @@ last_event_handle :: proc "contextless" () -> Handle {
 @(export)
 odindom_set_last_event :: proc "contextless" (h: Handle) {
 	last_event = h
+}
+
+// ================================================================================================
+// Generic method-call / numeric-property bridge
+// ================================================================================================
+
+// ------------------------------------------------------------------------------------------------
+// call_method calls a zero-argument, no-return-value method on the element (e.g. "preventDefault",
+// "resume", "stopPropagation").
+call_method :: proc "contextless" (h: Handle, name: string) {
+	dom_call_method0(h, name)
+}
+
+// ------------------------------------------------------------------------------------------------
+// call_method_ret calls a zero-argument method that returns a JS object, and returns a handle to
+// it (e.g. "getBoundingClientRect", "createOscillator", "createGain").
+call_method_ret :: proc "contextless" (h: Handle, name: string) -> Handle {
+	return dom_call_method_ret(h, name)
+}
+
+// ------------------------------------------------------------------------------------------------
+// call_method1f calls a method taking a single float64 argument and discards the return value
+// (e.g. AudioScheduledSourceNode "start"/"stop" with a timestamp).
+call_method1f :: proc "contextless" (h: Handle, name: string, a: f64) {
+	dom_call_method1f(h, name, a)
+}
+
+// ------------------------------------------------------------------------------------------------
+// call_method2f calls a method taking two float64 arguments and discards the return value (e.g.
+// AudioParam "setValueAtTime"/"linearRampToValueAtTime"/"exponentialRampToValueAtTime").
+call_method2f :: proc "contextless" (h: Handle, name: string, a, b: f64) {
+	dom_call_method2f(h, name, a, b)
+}
+
+// ------------------------------------------------------------------------------------------------
+// call_method1h calls a method taking a single handle argument (e.g. AudioNode "connect").
+call_method1h :: proc "contextless" (h: Handle, name: string, arg: Handle) {
+	dom_call_method1h(h, name, arg)
+}
+
+// ------------------------------------------------------------------------------------------------
+// set_property_f64 sets a numeric property on the element (e.g. an AudioParam's "value").
+set_property_f64 :: proc "contextless" (h: Handle, key: string, value: f64) {
+	dom_set_property_f64(h, key, value)
+}
+
+// ------------------------------------------------------------------------------------------------
+// get_f64 retrieves a numeric property from an element, parsed from its string form.
+get_f64 :: proc (h: Handle, key: string) -> f64 {
+	v, _ := strconv.parse_f64(get(h, key))
+	return v
+}
+
+// ------------------------------------------------------------------------------------------------
+// new_audio_context constructs a Web Audio AudioContext (falling back to webkitAudioContext on
+// older Safari). Returns INVALID if the browser has neither.
+new_audio_context :: proc "contextless" () -> Handle {
+	return dom_new_audio_context()
+}
+
+// ================================================================================================
+// localStorage
+// ================================================================================================
+
+// ------------------------------------------------------------------------------------------------
+// local_storage_get_item returns the string stored under key, or ok=false if unset.
+//
+// WARNING: the returned string points at a shared global scratch buffer — copy it if you need to
+// retain the value past another call to get/get_string/local_storage_get_item.
+local_storage_get_item :: proc "contextless" (key: string) -> (value: string, ok: bool) {
+	n := dom_local_storage_get_item(key, scratch[:])
+	if n < 0 {
+		return "", false
+	}
+	if n > len(scratch) {
+		n = len(scratch)
+	}
+	return string(scratch[:n]), true
+}
+
+// ------------------------------------------------------------------------------------------------
+// local_storage_set_item stores value under key.
+local_storage_set_item :: proc "contextless" (key, value: string) {
+	dom_local_storage_set_item(key, value)
 }
 
 // ================================================================================================

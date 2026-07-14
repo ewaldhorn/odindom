@@ -44,6 +44,10 @@
       let wasmMemory;
       let wasmExports;
       let _renderCache = null; // cached Uint8ClampedArray + ImageData for dom_canvas_render
+      // canvas_cmd persistent state (survives across frames/flushes):
+      const _cmdGradients = new Map(); // grad_id -> CanvasGradient
+      const _cmdSprites = new Map();   // sprite_id -> { canvas, ctx } offscreen bake target
+      let _cmdMeasureCtx = null;       // dedicated ctx for measureText
 
       function getStr(ptr, len) {
         return decoder.decode(new Uint8Array(wasmMemory.buffer, ptr, len));
@@ -169,10 +173,138 @@
             };
             requestAnimationFrame(tick);
           },
+
+          // -- Retained draw-command buffer (canvas_cmd package) --
+          // Walks a packed byte buffer produced by Odin and replays each op onto the 2D context.
+          // Wire format documented in canvas_cmd/canvas_cmd.odin. One foreign call per frame.
+          dom_canvas_cmd_flush: (ctx, bufPtr, bufLen) => {
+            const buf = wasmMemory.buffer;
+            const bytes = new Uint8Array(buf, bufPtr, bufLen);
+            const view = new DataView(buf, bufPtr, bufLen);
+            let p = 0;
+            const f = () => { const v = view.getFloat32(p, true); p += 4; return v; };
+            const u8 = () => bytes[p++];
+            const u16 = () => { const v = view.getUint16(p, true); p += 2; return v; };
+            const str = () => {
+              const n = view.getUint16(p, true); p += 2;
+              const s = decoder.decode(new Uint8Array(buf, bufPtr + p, n)); p += n;
+              return s;
+            };
+            // `c` is the active target: the flush context, or a sprite's offscreen context while
+            // baking. Gradients and sprites persist across frames, keyed by app-chosen ids.
+            const mainCtx = jsValues[ctx];
+            let c = mainCtx;
+            const grads = _cmdGradients;
+            const sprites = _cmdSprites;
+            while (p < bufLen) {
+              switch (bytes[p++]) {
+                case 0x01: c.fillStyle = str(); break;
+                case 0x02: c.strokeStyle = str(); break;
+                case 0x03: c.lineWidth = f(); break;
+                case 0x04: c.font = str(); break;
+                case 0x05: c.textAlign = str(); break;
+                case 0x06: c.textBaseline = str(); break;
+                case 0x07: c.globalAlpha = f(); break;
+                case 0x08: c.lineCap = str(); break;
+                case 0x10: c.fillRect(f(), f(), f(), f()); break;
+                case 0x11: c.strokeRect(f(), f(), f(), f()); break;
+                case 0x12: c.clearRect(f(), f(), f(), f()); break;
+                case 0x20: c.beginPath(); break;
+                case 0x21: c.moveTo(f(), f()); break;
+                case 0x22: c.lineTo(f(), f()); break;
+                case 0x23: c.closePath(); break;
+                case 0x24: { const x = f(), y = f(), r = f(), a0 = f(), a1 = f(); c.arc(x, y, r, a0, a1, u8() !== 0); break; }
+                case 0x25: { const x = f(), y = f(), rx = f(), ry = f(), rot = f(), a0 = f(), a1 = f(); c.ellipse(x, y, rx, ry, rot, a0, a1, u8() !== 0); break; }
+                case 0x26: c.rect(f(), f(), f(), f()); break;
+                case 0x27: c.bezierCurveTo(f(), f(), f(), f(), f(), f()); break;
+                case 0x28: c.fill(); break;
+                case 0x29: c.stroke(); break;
+                case 0x2A: c.clip(); break;
+                case 0x30: { const s = str(); c.fillText(s, f(), f()); break; }
+                case 0x31: { const s = str(); c.strokeText(s, f(), f()); break; }
+                case 0x40: c.save(); break;
+                case 0x41: c.restore(); break;
+                case 0x42: c.translate(f(), f()); break;
+                case 0x43: c.scale(f(), f()); break;
+                case 0x44: c.rotate(f()); break;
+                case 0x45: c.setTransform(f(), f(), f(), f(), f(), f()); break;
+                case 0x46: c.resetTransform(); break;
+                case 0x50: { const id = u16(); grads.set(id, c.createLinearGradient(f(), f(), f(), f())); break; }
+                case 0x51: { const id = u16(); grads.set(id, c.createRadialGradient(f(), f(), f(), f(), f(), f())); break; }
+                case 0x52: { const g = grads.get(u16()); const o = f(); const col = str(); if (g) g.addColorStop(o, col); break; }
+                case 0x53: { const g = grads.get(u16()); if (g) c.fillStyle = g; break; }
+                case 0x54: { const g = grads.get(u16()); if (g) c.strokeStyle = g; break; }
+                case 0x60: { const s = sprites.get(u16()); const dx = f(), dy = f(); if (s) c.drawImage(s.canvas, dx, dy); break; }
+                case 0x61: { const s = sprites.get(u16()); const dx = f(), dy = f(), dw = f(), dh = f(); if (s) c.drawImage(s.canvas, dx, dy, dw, dh); break; }
+                case 0x62: { const s = sprites.get(u16()); const sx = f(), sy = f(), sw = f(), sh = f(), dx = f(), dy = f(), dw = f(), dh = f(); if (s) c.drawImage(s.canvas, sx, sy, sw, sh, dx, dy, dw, dh); break; }
+                case 0x70: { c.shadowColor = str(); c.shadowBlur = f(); break; }
+                case 0x71: { c.shadowColor = "rgba(0,0,0,0)"; c.shadowBlur = 0; break; }
+                case 0x80: {
+                  const id = u16(), w = u16(), h = u16();
+                  let s = sprites.get(id);
+                  if (!s || s.canvas.width !== w || s.canvas.height !== h) {
+                    const cv = document.createElement("canvas");
+                    cv.width = w; cv.height = h;
+                    s = { canvas: cv, ctx: cv.getContext("2d") };
+                    sprites.set(id, s);
+                  } else {
+                    s.ctx.clearRect(0, 0, w, h);
+                  }
+                  c = s.ctx;
+                  break;
+                }
+                case 0x81: c = mainCtx; break;
+                default: return; // unknown opcode — bail rather than desync
+              }
+            }
+          },
+          dom_measure_text: (fontPtr, fontLen, textPtr, textLen) => {
+            if (!_cmdMeasureCtx) {
+              _cmdMeasureCtx = document.createElement("canvas").getContext("2d");
+            }
+            _cmdMeasureCtx.font = getStr(fontPtr, fontLen);
+            return _cmdMeasureCtx.measureText(getStr(textPtr, textLen)).width;
+          },
           // -- Logging --
           dom_log: (ptr, len) => { console.log(getStr(ptr, len)); },
           dom_alert: (ptr, len) => { alert(getStr(ptr, len)); },
           dom_now: () => performance.now(),
+
+          // -- Generic method-call / numeric-property bridge --
+          dom_call_method0: (elem, namePtr, nameLen) => {
+            jsValues[elem][getStr(namePtr, nameLen)]();
+          },
+          dom_call_method_ret: (elem, namePtr, nameLen) => {
+            return getHandle(jsValues[elem][getStr(namePtr, nameLen)]());
+          },
+          dom_call_method1f: (elem, namePtr, nameLen, a) => {
+            jsValues[elem][getStr(namePtr, nameLen)](a);
+          },
+          dom_call_method2f: (elem, namePtr, nameLen, a, b) => {
+            jsValues[elem][getStr(namePtr, nameLen)](a, b);
+          },
+          dom_call_method1h: (elem, namePtr, nameLen, arg) => {
+            jsValues[elem][getStr(namePtr, nameLen)](jsValues[arg]);
+          },
+          dom_set_property_f64: (elem, keyPtr, keyLen, value) => {
+            jsValues[elem][getStr(keyPtr, keyLen)] = value;
+          },
+
+          // -- Web Audio --
+          dom_new_audio_context: () => {
+            const Ctor = globalThis.AudioContext || globalThis.webkitAudioContext;
+            return Ctor ? getHandle(new Ctor()) : 0;
+          },
+
+          // -- localStorage --
+          dom_local_storage_get_item: (keyPtr, keyLen, outPtr, outLen) => {
+            const val = localStorage.getItem(getStr(keyPtr, keyLen));
+            if (val === null) return -1;
+            return putStr(outPtr, val, outLen);
+          },
+          dom_local_storage_set_item: (keyPtr, keyLen, valPtr, valLen) => {
+            localStorage.setItem(getStr(keyPtr, keyLen), getStr(valPtr, valLen));
+          },
         },
       };
 
