@@ -205,6 +205,19 @@ canvas {
   flex-wrap: wrap;
 }
 
+/* Canvas four is drawn with real Canvas2D commands (canvas_cmd), not a putImageData pixel blit —
+   undo the pixelated scaling used by the other canvases so gradients/arcs stay smooth. */
+.canvas-smooth canvas {
+  image-rendering: auto;
+}
+
+.canvas-hud {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
 /* ---- Coloured text classes (used by addRandomParagraph) ---- */
 .blue   { color: #4488ff; }
 .red    { color: #ff4466; }

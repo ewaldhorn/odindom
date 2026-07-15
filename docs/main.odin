@@ -23,7 +23,7 @@ import "../sound"
 BODY_STYLE :: #load("bodystyle.css", string)
 DOMMIE_TEXT :: #load("odindom.txt", string)
 
-VERSION :: "0.0.1"
+VERSION :: "0.0.2"
 NAME :: "OdinDOM Demo"
 
 // ------------------------------------------------------------------------------------------------
@@ -124,16 +124,17 @@ odindom_set_interaction :: proc "c" (x, y: i32) {
 
 // Callback table: 0 add something, 1 clear aside, 2 refresh canvas one, 3 animation tick,
 // 4 canvas two interaction, 5 article handle demo, 6 drum pad click, 7 drum play/pause,
-// 8 cycle gravity.
-CB_ADD_SOMETHING      :: 0
-CB_CLEAR_ASIDE        :: 1
-CB_REFRESH_CANVAS_ONE :: 2
-CB_ANIMATION_TICK     :: 3
-CB_CANVAS_INTERACTION :: 4
-CB_ARTICLE_DEMO       :: 5
-CB_DRUM_CANVAS_CLICK  :: 6
-CB_DRUM_PLAY_PAUSE    :: 7
-CB_CYCLE_GRAVITY      :: 8
+// 8 cycle gravity, 9 canvas four interaction.
+CB_ADD_SOMETHING          :: 0
+CB_CLEAR_ASIDE            :: 1
+CB_REFRESH_CANVAS_ONE     :: 2
+CB_ANIMATION_TICK         :: 3
+CB_CANVAS_INTERACTION     :: 4
+CB_ARTICLE_DEMO           :: 5
+CB_DRUM_CANVAS_CLICK      :: 6
+CB_DRUM_PLAY_PAUSE        :: 7
+CB_CYCLE_GRAVITY          :: 8
+CB_CANVAS_FOUR_INTERACTION :: 9
 
 // ------------------------------------------------------------------------------------------------
 @(export)
@@ -158,6 +159,8 @@ odindom_invoke_callback :: proc "c" (id: u32) {
 		on_drum_play_pause()
 	case CB_CYCLE_GRAVITY:
 		on_cycle_gravity()
+	case CB_CANVAS_FOUR_INTERACTION:
+		on_canvas_four_interaction()
 	}
 }
 
@@ -214,6 +217,7 @@ on_animation_tick :: proc() {
 	perform_demo_on_canvas_one()
 	update_canvas_two()
 	perform_demo_on_canvas_three()
+	update_canvas_four()
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -360,6 +364,7 @@ odindom_main :: proc "c" () {
 	canvas_one = canvas.new_canvas(800, 600, canvas_one_buffer[:], "canvasOneDiv")
 	canvas_two = canvas.new_canvas(600, 450, canvas_two_buffer[:], "canvasTwoDiv")
 	canvas_three = canvas.new_canvas(DRUM_CANVAS_W, DRUM_CANVAS_H, canvas_three_buffer[:], "canvasThreeDiv")
+	init_canvas_four()
 
 	perform_demo_on_canvas_one()
 	init_balls()

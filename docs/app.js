@@ -299,6 +299,44 @@ function initializeInteractions() {
     }, { passive: false });
   }
 
+  // Touch / Click interaction for the grove & pond canvas (canvas four) — spawns ripples
+  const canvasFourDiv = document.getElementById("canvasFourDiv");
+  if (canvasFourDiv) {
+    let canvas = null;
+    let cachedRectFour = null;
+
+    window.addEventListener('resize', () => { cachedRectFour = null; });
+
+    const handleInteraction = (clientX, clientY) => {
+      if (!canvas) canvas = canvasFourDiv.querySelector("canvas");
+      if (!canvas) return;
+      if (!cachedRectFour) cachedRectFour = canvas.getBoundingClientRect();
+      if (cachedRectFour.width === 0 || cachedRectFour.height === 0) return;
+      // Map from CSS pixels to canvas pixel space
+      const scaleX = canvas.width / cachedRectFour.width;
+      const scaleY = canvas.height / cachedRectFour.height;
+      const x = Math.round((clientX - cachedRectFour.left) * scaleX);
+      const y = Math.round((clientY - cachedRectFour.top) * scaleY);
+      wasmExports.odindom_set_interaction(x, y);
+      wasmExports.odindom_invoke_callback(9); // 9 = onCanvasFourInteraction
+    };
+
+    canvasFourDiv.addEventListener("mousedown", (e) => {
+      if (e.target.tagName === "CANVAS") {
+        e.preventDefault();
+        handleInteraction(e.clientX, e.clientY);
+      }
+    });
+
+    canvasFourDiv.addEventListener("touchstart", (e) => {
+      if (e.target.tagName === "CANVAS") {
+        e.preventDefault();
+        const touch = e.touches[0];
+        handleInteraction(touch.clientX, touch.clientY);
+      }
+    }, { passive: false });
+  }
+
   // Show controls as flex
   const controls = document.getElementById("controls");
   if (controls) controls.style.display = "flex";

@@ -15,6 +15,7 @@ Run the following command to build the projects and start a local development se
 Once the server is running, open these URLs in your browser:
 * **Interactive Demo:** [http://localhost:9000/docs/index.html](http://localhost:9000/docs/index.html)
 * **Click Rect Example:** [http://localhost:9000/examples/click-rect/index.html](http://localhost:9000/examples/click-rect/index.html)
+* **canvas_cmd Example:** [http://localhost:9000/examples/canvas-cmd/index.html](http://localhost:9000/examples/canvas-cmd/index.html)
 
 > ⚠️ **Warning:** Do not open the HTML files directly (via `file://`). Browsers block WebAssembly fetches over local file paths due to CORS. You must access them through a local server (like the one started by `./run.sh`).
 
@@ -25,8 +26,9 @@ Once the server is running, open these URLs in your browser:
 | `dom` | `dom` | Provides DOM access. Uses a `distinct u32` handle table for JS interop since Odin lacks `syscall/js`. |
 | `html` | `html` | HTML element builder. Same tags and modifiers as GoDOM, but uses plain procedures instead of dot-chaining. |
 | `colour` | `colour` | Color utilities and PRNG (single-threaded for WASM). |
-| `canvas` | `canvas` + `canvas_*` | Drawing primitives (Bresenham lines, circles, shapes). |
+| `canvas` | `canvas` + `canvas_*` | Drawing primitives (Bresenham lines, circles, shapes), blitted to a canvas via `putImageData`. |
 | `sound` | `sound` | Triangle-wave click synthesizer. |
+| `canvas_cmd` | — | Retained draw-command buffer for driving a *real* `CanvasRenderingContext2D` (gradients, text, sprites) via one packed `foreign` flush per frame, instead of a pixel-buffer blit. Demoed by the demo's Canvas 4 (Grove & Pond). |
 
 ## How It Works
 
@@ -115,19 +117,27 @@ A simple canvas rectangle that toggles colors when clicked. This is a direct por
 
 ---
 
-### 2. Full Interactive Demo (`docs`)
+### 2. canvas_cmd Basics (`examples/canvas-cmd`)
+
+The smallest possible `canvas_cmd` demo: one tree, one duck swimming and bobbing on a pond, no interaction. Shows how to batch a frame of real Canvas2D commands (gradients, arcs, sprite baking) into a single WASM&harr;JS call, as a starting point before looking at the fuller `docs/canvas_four.odin` scene.
+
+---
+
+### 3. Full Interactive Demo (`docs`)
 
 This is a complete port of GoDOM's original `demo/demo.go`. Unlike the simplified ZigDOM port, this version includes all original features, such as the full AI ship navigation and a high-precision wall-clock timer for the step sequencer.
 
 The demo features:
 
-#### 🎮 Three Interactive Canvases
+#### 🎮 Four Interactive Canvases
 * **Canvas 1: Synthwave AI Ship (`docs/canvas_one_ai.odin`)**
   An autopilot spacecraft navigating a synthwave starfield. It detects and dodges spawning obstacles (asteroids, energy bolts, enemies) with real-time threat evaluation and a live-score HUD.
 * **Canvas 2: Ball Physics (`docs/canvas_two.odin`)**
   An interactive 14-ball physical simulation with collision detection, motion trails, and drag-to-push mouse interaction. You can dynamically cycle the gravity direction (down, left, up, right, or zero-g).
 * **Canvas 3: Drum Sequencer (`docs/canvas_three.odin`)**
   A 16-step drum machine. It uses high-precision timing via `dom.now()` (`performance.now()`) to ensure the BPM remains perfectly stable regardless of your browser's frame rate.
+* **Canvas 4: Grove & Pond (`docs/canvas_four.odin`)**
+  An animated scene of trees and swimming ducks, rendered entirely through the `canvas_cmd` package — every gradient, path, and sprite blit for the frame is packed into one byte buffer and flushed to the real Canvas2D context with a single `foreign` call. A live HUD shows how many commands were batched into that one WASM↔JS crossing. Click the pond to spawn ripples.
 
 #### 📝 DOM & HTML Showcase
 * Demonstrates OdinDOM's HTML-builder utilities.
@@ -144,3 +154,4 @@ Since there is no traditional test suite, correctness is verified end-to-end in 
 * Gravity-mode switching in the physics engine.
 * Interactive elements (adding/clearing side-notes).
 * Step-sequencer state synchronization (verifying `odindom_drum_is_beat_active` changes before and after simulated clicks).
+* Canvas 4's `canvas_cmd` HUD (batched command count) and click-to-ripple interaction on the pond.

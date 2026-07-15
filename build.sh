@@ -32,4 +32,5 @@ cp web/odindom.js docs/odindom.js
 echo
 echo "Done. Serve the repo root with any static file server and open e.g.:"
 echo "  examples/click-rect/index.html"
+echo "  examples/canvas-cmd/index.html"
 echo "  docs/index.html"
