@@ -1,8 +1,8 @@
 # OdinDOM
 
-OdinDOM is a port of [GoDOM](../godom) (a Go WebAssembly DOM library) to [Odin](https://odin-lang.org), targeting the `js_wasm32` backend. 
+OdinDOM is a port of [GoDOM](https://github.com/ewaldhorn/godom) (a Go WebAssembly DOM library) to [Odin](https://odin-lang.org), targeting the `js_wasm32` backend. 
 
-Since Odin lacks Go's `syscall/js` for wrapping live JavaScript values, OdinDOM uses a handle-table design inspired by [ZigDOM](../zigdom).
+Since Odin lacks Go's `syscall/js` for wrapping live JavaScript values, OdinDOM uses a handle-table design inspired by [ZigDOM](https://github.com/ewaldhorn/zigdom).
 
 ## Quick Start
 
